@@ -212,14 +212,8 @@ Always consult a qualified healthcare professional for medical advice.
 
 ---
 
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
 ## Contact
 
-- 📁 GitHub: [your-username/cardiorisk-ai](https://github.com/your-username/cardiorisk-ai)
-- 🌐 Live Demo: [your-app.streamlit.app](https://your-app.streamlit.app)
-- 📧 Email: your@email.com
+- 📁 GitHub: [divya-sree-it/cardiorisk-ai](https://github.com/your-username/cardiorisk-ai)
+- 🌐 Live Demo: [CVD Risk Prediction.streamlit.app](https://your-app.streamlit.app)
+- 📧 Email: divyasrirajaram@email.com
