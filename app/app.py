@@ -10,21 +10,31 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 model_path = os.path.join(BASE_DIR, "models", "model.pkl")
 
-model, scaler, feature_names = pickle.load(open(model_path, "rb"))
+loaded_obj = pickle.load(open(model_path, "rb"))
+
+# Handle both cases safely
+if isinstance(loaded_obj, tuple):
+    model, scaler, feature_names = loaded_obj
+else:
+    model = loaded_obj
+    scaler = None
+    feature_names = [
+        "age","sex","chol","trestbps",
+        "steps","sleep_hours","avg_hr",
+        "lifestyle_score","stress_index"
+    ]
 
 # =========================
-# APP UI
+# UI
 # =========================
-st.set_page_config(page_title="CVD Risk Predictor", page_icon="❤️")
+st.set_page_config(page_title="CVD Risk", page_icon="❤️")
 
 st.title("❤️ Cardiovascular Risk Prediction")
-st.markdown("Predict your heart disease risk using clinical + lifestyle data")
+st.write("AI-based heart risk estimation using lifestyle + clinical data")
 
 # =========================
 # INPUTS
 # =========================
-st.subheader("Enter Patient Details")
-
 age = st.slider("Age", 20, 80, 40)
 sex = st.selectbox("Sex", ["Male", "Female"])
 chol = st.number_input("Cholesterol", 100, 400, 200)
@@ -32,19 +42,8 @@ bp = st.number_input("Blood Pressure", 80, 200, 120)
 
 steps = st.slider("Daily Steps", 0, 20000, 5000)
 sleep = st.slider("Sleep Hours", 0.0, 12.0, 6.5)
-hr = st.slider("Average Heart Rate", 40, 120, 70)
+hr = st.slider("Heart Rate", 40, 120, 70)
 
-model = pickle.load(open(model_path, "rb"))
-
-# Dummy fallback
-scaler = None
-feature_names = [
-    "age","sex","chol","trestbps",
-    "steps","sleep_hours","avg_hr",
-    "lifestyle_score","stress_index"
-]
-
-# Encode
 sex = 1 if sex == "Male" else 0
 
 # =========================
@@ -54,7 +53,7 @@ lifestyle_score = (steps * 0.3) + (sleep * 0.3) + (1/(hr+1) * 0.4)
 stress_index = hr / (sleep + 1)
 
 # =========================
-# BUILD INPUT DATAFRAME
+# BUILD INPUT
 # =========================
 input_dict = {
     "age": age,
@@ -68,7 +67,7 @@ input_dict = {
     "stress_index": stress_index
 }
 
-# Fill missing features safely
+# Ensure feature alignment
 for col in feature_names:
     if col not in input_dict:
         input_dict[col] = 0
@@ -76,15 +75,16 @@ for col in feature_names:
 input_df = pd.DataFrame([input_dict])[feature_names]
 
 # =========================
-# PREDICT
+# PREDICTION
 # =========================
 if st.button("🔍 Predict Risk"):
-
     try:
         if scaler:
-            X_scaled = scaler.transform(input_df)
+            X = scaler.transform(input_df)
         else:
-            X_scaled = input_df.values
+            X = input_df.values
+
+        risk = model.predict_proba(X)[0][1]
 
         # Risk category
         if risk < 0.3:
@@ -102,7 +102,9 @@ if st.button("🔍 Predict Risk"):
         st.error(f"Error: {e}")
 
 # =========================
-# FOOTER
+# DEBUG (remove later)
 # =========================
-st.markdown("---")
-st.caption("Built with Machine Learning + Wearable Data")
+with st.expander("Debug Info"):
+    st.write("Model Loaded:", type(model))
+    st.write("Scaler Present:", scaler is not None)
+    st.write("Features:", feature_names)
